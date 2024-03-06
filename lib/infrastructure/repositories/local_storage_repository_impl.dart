@@ -2,7 +2,7 @@ import 'package:cinemapedia/domain/datasources/local_storage_datasource.dart';
 import 'package:cinemapedia/domain/entities/movie.dart';
 import 'package:cinemapedia/domain/repositories/local_storage_repository.dart';
 
-class LocalStorageRepositoryImpl extends LocalStoreRepository{
+class LocalStorageRepositoryImpl extends LocalStorageRepository{
 
   final LocalStoraDatasource datasource;
 
