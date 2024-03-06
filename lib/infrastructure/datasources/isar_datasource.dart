@@ -3,7 +3,7 @@ import 'package:cinemapedia/domain/entities/movie.dart';
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
 
-class isarDatasource extends LocalStoraDatasource {
+class IsarDatasource extends LocalStoraDatasource {
   // Entender este fragmento de codigo
 
   late Future<Isar> db;
@@ -29,7 +29,7 @@ class isarDatasource extends LocalStoraDatasource {
     final isar = await db;
 
     final Movie? isMovieFavorite =
-        await isar.movies.filter().idEqualTo(movieId).findFirst();
+      await isar.movies.filter().idEqualTo(movieId).findFirst();
 
     return isMovieFavorite != null;
   }
@@ -45,8 +45,20 @@ class isarDatasource extends LocalStoraDatasource {
   }
 
   @override
-  Future<void> toggleFavorite(Movie movie) {
-    // TODO: implement toggleFavorite
-    throw UnimplementedError();
+  Future<void> toggleFavorite(Movie movie) async{
+    final isar = await db;
+
+    final favoriteMovie = await isar.movies
+    .filter()
+    .idEqualTo(movie.id)
+    .findFirst();
+
+    if(favoriteMovie != null){
+      isar.writeTxnSync(() => isar.movies.deleteSync(favoriteMovie.isarId));
+    }else{
+    isar.writeTxnSync(() => isar.movies.putSync(movie));
+    }
+    
+
   }
 }

@@ -1,11 +1,9 @@
+import 'package:cinemapedia/infrastructure/repositories/local_storage_repository_impl.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:animate_do/animate_do.dart';
-
 import 'package:cinemapedia/domain/entities/movie.dart';
-
 import 'package:cinemapedia/presentation/providers/providers.dart';
-import 'package:cinemapedia/presentation/providers/movies/movie_info_provider.dart';
 
 class MovieScreen extends ConsumerStatefulWidget {
   static const name = 'movie-screen';
@@ -183,13 +181,21 @@ class _ActorsByMovie extends ConsumerWidget {
   }
 }
 
-class _CustomSliverAppBar extends StatelessWidget {
+final isFavoriteProvider = FutureProvider.family.autoDispose((ref, int movieId) {
+  final localStorageRepository = ref.watch(localStorageRepositoryProvider);
+
+  return localStorageRepository.isMovieFavorite(movieId);
+});
+
+class _CustomSliverAppBar extends ConsumerWidget {
   final Movie movie;
 
   const _CustomSliverAppBar({required this.movie});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isFavoriteFuture = ref.watch(isFavoriteProvider(movie.id));
+
     final size = MediaQuery.of(context).size;
 
     return SliverAppBar(
@@ -199,9 +205,16 @@ class _CustomSliverAppBar extends StatelessWidget {
       actions: [
         IconButton(
             onPressed: () {
-              // TODO: implemetar el toggle
+              ref.watch(localStorageRepositoryProvider).toggleFavorite(movie);
+
+              ref.invalidate(isFavoriteProvider(movie.id));
             },
-            icon: Icon(Icons.favorite_border))
+            icon: isFavoriteFuture.when(
+                data: (isFavorite) => isFavorite
+                ? const Icon(Icons.favorite_rounded, color: Colors.red,)
+                : const Icon(Icons.favorite_border_outlined),
+                error: (error, stackTrace) => throw UnimplementedError(),
+                loading: () => const CircularProgressIndicator(strokeWidth: 2)))
       ],
       flexibleSpace: FlexibleSpaceBar(
         titlePadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
@@ -217,9 +230,19 @@ class _CustomSliverAppBar extends StatelessWidget {
                 },
               ),
             ),
-            const _CustomGredient(begin: Alignment.topRight, end: Alignment.bottomLeft, stops: [0, 0.2]),
-            const _CustomGredient(begin: Alignment.bottomCenter, end: Alignment.topCenter, stops: [0.0, 0.2]),
-            const _CustomGredient(begin: Alignment.topLeft, end: Alignment.bottomRight, stops: [0.0, 0.2],),
+            const _CustomGredient(
+                begin: Alignment.topRight,
+                end: Alignment.bottomLeft,
+                stops: [0, 0.2]),
+            const _CustomGredient(
+                begin: Alignment.bottomCenter,
+                end: Alignment.topCenter,
+                stops: [0.0, 0.2]),
+            const _CustomGredient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              stops: [0.0, 0.2],
+            ),
           ],
         ),
       ),
@@ -232,8 +255,7 @@ class _CustomGredient extends StatelessWidget {
   final AlignmentGeometry? end;
   final List<double> stops;
 
-  const _CustomGredient(
-      {super.key, required this.begin, this.end, required this.stops});
+  const _CustomGredient({required this.begin, this.end, required this.stops});
 
   @override
   Widget build(BuildContext context) {
