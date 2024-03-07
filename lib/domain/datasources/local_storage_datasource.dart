@@ -1,10 +1,14 @@
 import 'package:cinemapedia/domain/entities/movie.dart';
 
-abstract class LocalStoraDatasource{
 
-  Future<void> toggleFavorite(Movie movie);
 
-  Future<bool> isMovieFavorite(int movieId); 
+abstract class LocalStorageDatasource {
 
-  Future<List<Movie>> loadMovies({int limit = 10, offset = 0});
+  Future<void> toggleFavorite( Movie movie );
+  
+  Future<bool> isMovieFavorite( int movieId );
+
+  Future<List<Movie>> loadMovies({ int limit = 10, offset = 0 });
+  
+
 }
